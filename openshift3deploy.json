@@ -112,8 +112,8 @@
           }
       },
        "uriPATToken": "b3f20a1e58fd8ab9b6be274994cb03223599ee8b",
-       "scriptUri": "https://raw.githubusercontent.com/lazyest/linnovate/main/osd3/osd3.sh",
-       "scriptName": "osd3",
+       "scriptUri": "https://raw.githubusercontent.com/hossted/okd3node/main/scripts/okd3.sh",
+       "scriptName": "okd3",
        "scriptNameSh": "[concat(variables('scriptName'), '.sh')]"
     },
     "resources": [
