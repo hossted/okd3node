@@ -1,0 +1,301 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "projectName": {
+        "type": "string",
+        "defaultValue": "okd3",
+        "metadata": {
+          "description": "Specifies a project name that is used for generating resource names."
+          }
+      },
+      "UserName": {
+        "type": "string",
+          "defaultValue": "John_Doe",
+        "metadata": {
+          "description": "User name NO SPACE IS ALLOWED instead space mark _."
+        }
+      },
+      "UserPhoneNumber": {
+        "type": "string",
+          "defaultValue": "023579353",
+        "metadata": {
+          "description": "User phone number for connecting."
+        }
+      },
+      "UserEmail": {
+        "type": "string",
+          "defaultValue": "sysadmin@linnovate.net",
+        "metadata": {
+          "description": "Email address for user."
+        }
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "West Europe",
+        "metadata": {
+          "description": "Specifies the location for all of the resources created by this template."
+        }
+      },
+      "vmSize": {
+        "type": "string",
+        "allowedValues": [
+            "Standard_A4_v2",
+            "Standard_A8_v2",
+            "Standard_D1_v2",
+            "Standard_D2_v2",
+            "Standard_D3_v2",
+            "Standard_D4_v2",
+            "Standard_D5_v2",
+            "Standard_D12_v2",
+            "Standard_D13_v2"
+        ],
+        "metadata": {
+            "description": "This is the headnode Azure Virtual Machine size, and will affect the cost. If you don't know, just leave the default value."
+            }
+      },
+      "adminUsername": {
+        "type": "string",
+        "defaultValue": "ubuntu",
+        "metadata": {
+          "description": "Specifies the virtual machine administrator username."
+        }
+      },
+      "authenticationType": {
+        "type": "string",
+        "defaultValue": "sshPublicKey",
+        "allowedValues": [
+        "sshPublicKey",
+        "password"
+        ],
+        "metadata": {
+            "description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+        }
+        },
+        "adminPasswordOrKey": {
+        "type": "securestring",
+        "metadata": {
+        "description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
+            }
+        }
+      },
+      "variables": {
+      "nsgName": "[concat(parameters('projectName'),'-nsg')]",
+      "vNetName": "[concat(parameters('projectName'),'-vnet')]",
+      "vNetAddressPrefix": "10.0.0.0/16",
+      "numberOfVMs": 3,
+      "imagePublisher": "OpenLogic",
+      "imageOffer": "CentOS",
+      "imageSKU": "7.5",
+      "ip1": "[concat(parameters('projectName'),'-vm1-publicIp')]",
+      "ip2": "[concat(parameters('projectName'),'-vm2-publicIp')]",
+      "ip3": "[concat(parameters('projectName'),'-vm3-publicIp')]",
+      "vm1": "[concat(parameters('projectName'),'-vm1')]",
+      "vm2": "[concat(parameters('projectName'),'-vm2')]",
+      "vm3": "[concat(parameters('projectName'),'-vm3')]",
+      "nic1": "[concat(parameters('projectName'),'-vm1-networkInterface')]",
+      "nic2": "[concat(parameters('projectName'),'-vm2-networkInterface')]",
+      "nic3": "[concat(parameters('projectName'),'-vm3-networkInterface')]",
+      "vNetSubnetName": "BackendSubnet",
+      "vNetSubnetAddressPrefix": "10.0.1.0/24",
+      "vmStorageAccountType": "Standard_LRS",
+      "imageSize": "[parameters('vmSize')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": true,
+        "ssh": {
+            "publicKeys": [
+             {
+              "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+              "keyData": "[parameters('adminPasswordOrKey')]"
+             }
+            ]
+          }
+      },
+       "uriPATToken": "b3f20a1e58fd8ab9b6be274994cb03223599ee8b",
+       "scriptUri": "https://raw.githubusercontent.com/lazyest/linnovate/main/osd3/osd3.sh",
+       "scriptName": "osd3",
+       "scriptNameSh": "[concat(variables('scriptName'), '.sh')]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2020-05-01",
+        "name": "[variables('nsgName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "securityRules": [
+            {
+              "name": "nsgRule1",
+              "properties": {
+               "description": "tcp ports",
+               "protocol": "Tcp",
+               "sourcePortRange": "*",
+               "destinationPortRanges": ["22","25","80","111","443","1936","2379","2380","8080","8443","8444","4001","7001","9000-10000","10250","10251","10256","11256"],
+               "sourceAddressPrefix": "*",
+               "destinationAddressPrefix": "*",
+               "access": "Allow",
+               "priority": 100,
+               "direction": "Inbound"
+               }
+            },
+            {
+             "name": "nsgRule2", 
+              "properties": { 
+              "description": "tcp/udp ports",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": ["53","68","179","323","1006","4789","8053"],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          } 
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2020-05-01",
+        "name": "[variables('vNetName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('vNetAddressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('vNetSubnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('vNetSubnetAddressPrefix')]"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2017-03-30",
+        "name": "[concat(parameters('projectName'),'-vm', copyIndex(1))]",
+        "location": "[parameters('location')]",
+        "copy": {
+          "name": "vmCopy",
+          "count": "[variables('numberOfVMs')]"
+        },
+        "dependsOn": [
+          "networkInterfaceCopy"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[variables('imageSize')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "[variables('imageSKU')]",
+                        "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "[variables('vmStorageAccountType')]"
+              }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('projectName'),'-vm', copyIndex(1), '-networkInterface'))]"
+              }
+            ]
+          },
+          "osProfile": {
+            "computerName": "[concat(parameters('projectName'),'-vm', copyIndex(1))]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPasswordOrKey')]",
+            "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]"
+        }
+       }
+      },
+      {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2020-05-01",
+        "name": "[concat(parameters('projectName'),'-vm', copyIndex(1), '-publicIp')]",
+        "location": "[parameters('location')]",
+        "sku": {
+          "name": "Standard"
+        },
+        "copy": {
+          "name": "publicIPAddressCopy",
+          "count": "[variables('numberOfVMs')]"
+        },
+        "properties": {
+          "publicIPAddressVersion": "IPv4",
+          "publicIPAllocationMethod": "Static"
+        }
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2020-05-01",
+        "name": "[concat(parameters('projectName'),'-vm', copyIndex(1), '-networkInterface')]",
+        "location": "[parameters('location')]",
+        "copy": {
+          "name": "networkInterfaceCopy",
+          "count": "[variables('numberOfVMs')]"
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/virtualNetworks/', variables('vNetName'))]",
+          "[resourceId('Microsoft.Network/networkSecurityGroups/', variables('nsgName'))]",
+          "publicIPAddressCopy"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "subnet": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vNetName'), variables('vNetSubnetName'))]"
+                },
+                "publicIpAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('projectName'),'-vm', copyIndex(1), '-publicIp'))]"
+                }
+              }
+            }
+          ],
+          "networkSecurityGroup": {
+            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('projectName'),'-vm',copyIndex(1), '/', variables('scriptName'))]",
+        "apiVersion": "2018-06-01",
+        "location": "[parameters('location')]",
+        "copy": {
+          "name": "extensionCopy",
+          "count": "[variables('numberOfVMs')]"
+        },
+        "dependsOn": [
+              "vmCopy"
+        ],
+        "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+            "fileUris": [
+                  "[variables('scriptUri')]"
+            ],
+        "commandToExecute": "[concat('bash ', variables('scriptNameSh'),' ',copyIndex(1),' ', parameters('adminUsername'),' ',variables('numberOfVMs'),' ',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('ip1'))).IpAddress,' ',reference(variables('nic1')).ipConfigurations[0].properties.privateIPAddress,' ',variables('vm1'),' ',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('ip2'))).IpAddress,' ',reference(variables('nic2')).ipConfigurations[0].properties.privateIPAddress,' ',variables('vm2'),' ',reference(resourceId('Microsoft.Network/publicIPAddresses',variables('ip3'))).IpAddress,' ',reference(variables('nic3')).ipConfigurations[0].properties.privateIPAddress,' ',variables('vm3'))]"
+          }
+        }
+      }
+    ]
+}
