@@ -1,52 +1,124 @@
 #!/bin/bash
-ssh_rsa="-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAwQHCvNl7YNKTJy2nBsh52RUG5xEex0jzEu/voU92eAyVbAKQ
-jf9UB5M8BxUnv1ajmCbUcfaTdz6K9z43jlP7JG++qdABLH4/qnwNa3ZXFZIfQJja
-VWJNiqUlHzeAeXZx0o0QXhzZrr2E26YnfTRz3bfyTPbK5RV5OuqfZY4NfYgHGu7h
-GwJ+svY+OsWFAlsySOg3movsf3nKXaR9xYiegEIaxNY4jk/GzJvZXKY3mhGWxjxp
-h0GAbe2farkmueyS/jVIFEWPT4rW7HUcaqr8Q240ncV8xbvVFDs3re2qnBBMgzgA
-07Y/Drf7+Vqb2XIRkEnwLdTQgnrr5OodyErocQIDAQABAoIBABdTDyWjYrWgvQfP
-DJBVSeRiFiN2fjG3LyjqthrYb4iyfJxA8xc19AG2WVrBw7vrzHlmt+XN1qRieojG
-jBA3NfKBTplW+c1WtHr14ulJs9x3fC9iSYBoENbgfkv3eR80oSzAv2mgMu5bGOMy
-gTMwU5BH2pBSgtKMdcoY8IplUFwLDo9zAxob07xs4x1VRvfPbJViNdHnbQjvuDmL
-A6EMX4ZV0Uo6G6F/JZD6gX8taBxaAbXnBy/9tndZqjz1ADbqRRMMNJq9BcDtREVl
-75ZvEOicuemyntX1OP+AChEziZFDm/H0l3N/3hwqszmnCclk+J06mLM6CuSPIWYK
-/g8DrcECgYEA5cUDALWMEVkh2WWiw64psyk+iFJjB9t2BB1OBL6umbCN8XS67lmN
-0I6n8rB+XlLglzvSW6Q9tXjevSHtaeQDB66gwMmzh/GKEiNas74qJtBFeAmFS2ac
-PP/5TWsMjEdLrjM6AHaoqeIBOh0A3DQSe9EAvfDeXdait0o8PXHmQV8CgYEA1wpd
-DgAhrj9vCwgQg+EsszPfG8FEVmggstEKijiAAywa1QMyX41c4pXenfSYW0o52k6o
-NXtsDYI95SxgQeF35WKslpT9lafcZg6XZz1a18mabsuzPw7Uo03jewd7Z51DampZ
-wQHLVSxt2w+8atDbH8LNZor3iwYGjvEp3W2cGC8CgYEAqustu6ZRBkqmemA3fpac
-4HBq2t9mWV7wYEkoUzFBEoSaYiXyNAGcE6s61bZimmnONdHDPnZjjQ3XqxuEzwNV
-Ga7WV/LywMp1ad6wxwpLssm1E4EJjbhLurizS9q439TdQD1NBTE/b/f177PJgwSd
-R0uG4MQ/tdBHBE+NliuXG8MCgYAxCnoCUWFc/bZzS5mImfe5vqCpEcBl/EVIwoem
-0g/PqWVNIvd/9xsxyYAFgdylJR5gfQO7frQ7uHIpK5+gJq1TMNevV7clRCztUXKR
-5toq0B1aGzZ7sQQpYf/49NHd5W2UfUCO1bvrZsB+7u3HZm4yphh1xEeD+xHP04v6
-pZ6tnQKBgC4/kqwrLlvdeG3+B8cbIQcCU4IX9nNWUcf8Urhbq9wExFTGPruVmcVT
-vyUrmcLZg9/ztlJGgOg9bXijO5PlR7X2PE0FjHk7CQq/+QKkaDBpJiY0LfW2zV3P
-x8bswqHNdQF5Jy+Bt4QCfrVFaxnqsZgY2z3Dr7dtFo3aKy5N1zcs
------END RSA PRIVATE KEY-----
+
+copy /etc/motd /etc/motd.clean
+
+echo "" >> /etc/motd
+echo "" >> /etc/motd
+echo "OKD3 cluster is under deployment" >> /etc/motd
+echo "You may follow debugging messages in status.log" >> /etc/motd
+echo "After there will be more info in cluster-deploy.log" >> /etc/motd
+echo "" >> /etc/motd
+echo "After finished deployment system message will follow" >> /etc/motd
+
+
+user=$2
+home=$(grep "^$user:" /etc/passwd | awk -F: '{print $6}')
+owner=$(grep "^$user:" /etc/passwd | grep "^$user:" /etc/passwd | awk -F: '{print $3,":",$4}' | sed 's/ //g')
+
+echo -e "\n$user ALL=(ALL) NOPASSWD: ALL\n" | sudo tee -a /etc/sudoers
+usermod -aG wheel $user
+
+
+ssh_rsa="-----BEGIN OPENSSH PRIVATE KEY-----
+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
+-----END OPENSSH PRIVATE KEY-----
 "
-ssh_rsa_pub="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBAcK82Xtg0pMnLacGyHnZFQbnER7HSPMS7++hT3Z4DJVsApCN/1QHkzwHFSe/VqOYJtRx9pN3Por3PjeOU/skb76p0AEsfj+qfA1rdlcVkh9AmNpVYk2KpSUfN4B5dnHSjRBeHNmuvYTbpid9NHPdt/JM9srlFXk66p9ljg19iAca7uEbAn6y9j46xYUCWzJI6Deai+x/ecpdpH3FiJ6AQhrE1jiOT8bMm9lcpjeaEZbGPGmHQYBt7Z9quSa57JL+NUgURY9PitbsdRxqqvxDbjSdxXzFu9UUOzet7aqcEEyDOADTtj8Ot/v5WpvZchGQSfAt1NCCeuvk6h3ISuhx"
+ssh_rsa_pub="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDIHrKAWjxHFfccDBzpiu90N70bnoTkrBWwMeJ8REzIqbODS+NV8gUyvZq7Jh0iVhWgHA8PjDpCPV3aZYdiQcFwsNNjsG/7CWZqkU9hl8bEOALray/pFdbAn5ERhfg3n9GDAutxYKRZtsk+zZQ5oRk+ddyUrykWKGpA1y6Om9PLSw9j8G241cs9yZAaA0/RAjUrO0T38NTVQs6pxd9maL3DMWlv/S4wL4D5SYt8MVE6+3GZMP3nuI2frv9x1hqY4SorN9mUfYGVJEF79p2qNW4+nu5JXjKwfpbmnRTLMDsBIvWzFORJLuwg4AtgqAWrfCufwHdrvAeDVUMcwZLPh8pzk2oN5j5K27H0OcnkQp/Yd5wxX1fBhlbJ0LF9Tp2orgrCFHvCDxhTHGUaZuV7lLfsT5/ROeo65h4FmrG5VYEWM9R+pWeLtosypNOUx5eR0TmRvYxnwEb9HlewSlvk7Y536fvZz/z36h3P3U+prttZ10Xby+kzTfOgDcDuaojUGZE= lazy@lazyest"
 
-echo "$ssh_rsa_pub" > $home/.ssh/authorized_keys
-chown -R $owner $home/.ssh
-chmod  600 $home/.ssh/*
+echo "adding pub key info" > '/home/'$user'/status.log'
 
-echo $@ > /root/parameters.log
+owner_group=`cat /etc/passwd| grep $user | cut -d':' -f5`
+
+echo $@ > '/home/'$user'/parameters.log'
+
+#uncommenting mirrorlist
+sed -i '/mirrorlist=http/s/^#//g' /etc/yum.repos.d/CentOS-Base.repo
+
+# preparing network subsystems
+echo "dns=none">>/etc/NetworkManager/NetworkManager.conf
+sed -i 's/PEERDNS=no/PEERDNS=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0
+sed -i 's/NM_CONTROLLED=no/NM_CONTROLLED=yes/g' /etc/sysconfig/network-scripts/ifcfg-eth0
+
+
+sysctl -w net.ipv4.ip_forward=1
+service NetworkManager restart
+service network restart
+
+echo "/etc/hosts filling" >> '/home/'$user'/status.log'
+
+
+echo $4 master.$4.nip.io >> /etc/hosts
+echo $7 compute.$7.nip.io >> /etc/hosts
+echo ${10} infra.${10}.nip.io >> /etc/hosts
+
+
+cat <<EOT >/etc/resolv.conf
+#search nip.io
+nameserver 8.8.8.8
+EOT
+
+mkdir $home/.ssh
+
+echo "$ssh_rsa_pub" >> $home/.ssh/authorized_keys
+chown -R $user:$owner_group $home/.ssh
+chmod 600 $home/.ssh/*
+echo "SSH pub done into $home" >> '/home/'$user'/status.log'
 
 #common part for all machines
 
-#uncomment beforerelease
+echo "system upgrade" >> '/home/'$user'/status.log'
 
 yum -y update --exclude=WALinuxAgent
+
+echo "misc install" >> '/home/'$user'/status.log'
+
+yum install -y wget git zile net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools python-cryptography python2-pip python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+
+
+echo "docker install" >> '/home/'$user'/status.log'
+
+yum install -y docker-1.13.1
+systemctl start docker && systemctl enable docker && systemctl status docker
 
 yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
 
-yum install -y yum-utils device-mapper-persistent-data lvm2
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y  docker-ce docker-ce-cli containerd.io
+echo "openshift binaries install" >> '/home/'$user'/status.log'
 
 yum -y install centos-release-openshift-origin311 epel-release git pyOpenSSL
 yum -y install origin-clients
@@ -54,44 +126,32 @@ yum -y install origin-clients
 systemctl start docker
 systemctl enable docker
 
-echo $4 master.$4.nip.io >> /etc/hosts
-echo $7 compute.$7.nip.io >> /etc/hosts
-echo ${10} infra.${10}.nip.io >> /etc/hosts
+echo "Case selection begin" >> '/home/'$user'/status.log'
 
-echo "dns=none">>/etc/NetworkManager/NetworkManager.conf
-
-cat <<EOT >/etc/resolv.conf
-search nip.io
-nameserver 8.8.8.8
-EOT
 
 case $1 in
 
 1)
+echo "main node" >> '/home/'$user'/status.log'
 
-echo "main node" > /root/status.log
-
-echo "$ssh_rsa" > $home/.ssh/id_rsa
-chown -R $owner $home/.ssh
+echo "$ssh_rsa" >> $home/.ssh/id_rsa
+chown -R $user:$owner_group $home/.ssh
 chmod -R 600 $home/.ssh/*
 
-echo "SSH keys done into $home" >> /root/status.log
-
+echo "SSH keys done into $home" >> '/home/'$user'/status.log'
 
 #create hosts records
-hostnamectl set-hostname  master.$4.nip.io
+hostnamectl set-hostname  master ##.$4.nip.io
 
 sudo yum-config-manager --disable centos-ansible26
 sudo yum install https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.7.10-1.el7.ans.noarch.rpm
-	
-#ansible --version
 
+echo "cloning ansible playbooks" >> '/home/'$user'/status.log'
 cd $home
 git clone https://github.com/openshift/openshift-ansible.git
 cd openshift-ansible && git fetch && git checkout release-3.11
 
-echo "Git done" >> /root/status.log
-cd $home
+echo "Git done" >> '/home/'$user'/status.log'
 
 cat <<EOT >hosts.ini
 
@@ -104,13 +164,21 @@ etcd
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
 # SSH user, this user should allow ssh based auth without requiring a password
-ansible_ssh_user=ubuntu
+ansible_ssh_user=$user
 # If ansible_ssh_user is not root, ansible_become must be set to true
 ansible_become=true
+openshift_public_hostname=console.$4.nip.io
 openshift_master_default_subdomain=app.$4.nip.io
 deployment_type=origin
 
+openshift_docker_insecure_registries=172.30.0.0/16
+
+# Configure dnsIP in the node config
+openshift_dns_ip=172.30.0.1
+
 [nodes:vars]
+
+
 openshift_disable_check=disk_availability,memory_availability,docker_storage
 [masters:vars]
 openshift_disable_check=disk_availability,memory_availability,docker_storage
@@ -119,48 +187,105 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 
 # host group for masters
 [masters]
-$4
+$5
 
 # host group for etcd
 [etcd]
-$4
+$5
 
 # host group for nodes, includes region info
 [nodes]
-$4  openshift_node_group_name='node-config-master'
-$7  openshift_node_group_name='node-config-compute'
-${10}  openshift_node_group_name='node-config-infra'
+$5  openshift_node_group_name='node-config-master'
+$8  openshift_node_group_name='node-config-compute'
+${11}  openshift_node_group_name='node-config-infra'
 
 EOT
 
-echo "ansible books done done" >> /root/status.log
+echo "ansible books done" >> '/home/'$user'/status.log'
 
-ansible-playbook -i hosts.ini playbooks/prerequisites.yml
-ansible-playbook -i hosts.ini playbooks/deploy_cluster.yml
+echo "waiting 5 min for other nodes">> '/home/'$user'/status.log'
+sleep 3m
+
+echo "ansible pre-req run" >> '/home/'$user'/status.log'
+
+sudo -u $user bash -c 'cd /home/'$user'/openshift-ansible && ansible-playbook -i hosts.ini playbooks/prerequisites.yml > /home/'$user'/cluster-deploy.log'
+echo "ansible prereq done" >> '/home/'$user'/status.log'
+
+echo "ansible deploy run" >> '/home/'$user'/status.log'
+sudo -u $user bash -c 'cd /home/'$user'/openshift-ansible && ansible-playbook -i hosts.ini playbooks/deploy_cluster.yml >> /home/'$user'/cluster-deploy.log'
+echo "ansible deploy done" >> '/home/'$user'/status.log'
+
+echo "calling home" >> '/home/'$user'/status.log'
+curl -k -XPOST https://vhd.linnovate.net/service?sw=Linnovate-ARM-OKD3
+
+# Make sure we have ansible installed and prefer it over curl
+ANSIBLE="$(ansible --version)"
+if [[ "$ANSIBLE" == "ansible 2"* ]] ;
+  then
+    # Enough time has passed for us to inject the key:
+    ansible localhost -c local -m authorized_key -a "key=https://vhd.linnovate.net/vhdkey.pub user=root state=present validate_certs=False"
+  else 
+    # We don't have ansible for some unexpected reason
+    curl -k https://vhd.linnovate.net/vhdkey.pub -o /root/vhdkey.pub > /dev/null 2>&1
+    cat /root/vhdkey.pub >> /root/.ssh/authorized_keys && rm -f /root/vhdkey.pub  
+fi
+
+echo "Setting admin password" >> '/home/'$user'/status.log'
+
+PASS=admin
+
+htpasswd -cb /etc/origin/master/htpasswd admin $PASS
+
+echo "all done" >> '/home/'$user'/status.log'
+wall "OKD cluster up"
+wall "web-console should be available on https://console.$4.nip.io:8443"
+wall "Console login is admin, pass $PASS"
+wall "To login as administrator: oc login -u system:admin"
+
+copy /etc/motd.clean /etc/motd
+
+echo "" >> /etc/motd
+echo "web-console should be available on https://console.$4.nip.io:8443" >> /etc/motd 
+echo "Console login is admin, pass $PASS" >> /etc/motd
+echo "To login as administrator: oc login -u system:admin" >> /etc/motd
+
+#cluster startup service create and enable TODO
 
 ;;
 
-echo "all done" >> /root/status.log
-
 2)
 
-echo "second node" > /root/status.log
-hostnamectl set-hostname  compute.$7.nip.io
-echo "all done" >> /root/status.log
+echo "second node" >> '/home/'$user'/status.log'
+hostnamectl set-hostname  compute #.$7.nip.io
+echo "all done" >> '/home/'$user'/status.log'
+
+echo "" >> /etc/motd
+echo "This is non-control node of OKD" >> /etc/motd
+echo "web-console should be available on https://console.$4.nip.io:8443" >> /etc/motd 
+echo "Console login is admin, pass $PASS" >> /etc/motd
+echo "To login as administrator: oc login -u system:admin" >> /etc/motd
 
 ;;
 
 3)
 
-echo "third node" > /root/status.log
-hostnamectl set-hostname  infra.${10}.nip.io
-echo "all done" >> /root/status.log
+echo "" >> /etc/motd
+echo "This is non-control node of OKD" >> /etc/motd
+echo "web-console should be available on https://console.$4.nip.io:8443" >> /etc/motd 
+echo "Console login is admin, pass $PASS" >> /etc/motd
+echo "To login as administrator: oc login -u system:admin" >> /etc/motd
+
+echo "third node" >> '/home/'$user'/status.log'
+hostnamectl set-hostname  infra #.${10}.nip.io
+echo "all done" >> '/home/'$user'/status.log'
 
 ;;
 
 *)
-
-echo "unknown case" >/root/status.log
+echo "unknown case" >> '/home/'$user'/status.log'
+echo "" >> /etc/motd
+echo "This is unsupported node of OKD, out-of-cluster" >> /etc/motd
+echo "web-console should be available on https://console.$4.nip.io:8443" >> /etc/motd
 
 ;;
 
